@@ -19,6 +19,7 @@ router.post('/signup',  userController.signup);
 router.post('/login', userController.login);
 
 router.put("/update-profile/:id",userController.updateUser)
+router.get("/getuser",middleware.auth,userController.getUser)
 
 router.get('/verifyOtp', userController.verifyOtp);
 

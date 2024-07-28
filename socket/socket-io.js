@@ -1,6 +1,7 @@
 "use strict";
 const http = require("http");
-const { Message, Room } = require("../schemas/model");
+const { jwt } = require("../utils/lib")
+const { Message, Room, User } = require("../schemas/model");
 const activeUsers = new Set();
 // const chatCtrl = require("../api/chat");
 
@@ -18,46 +19,31 @@ module.exports = (server, logger) => {
     next();
   });
 
-  io.on("connection", (socket) => {
+  io.on("connection", async (socket) => {
     console.log("User connected", socket.id);
     logger.info(`CONN [${socket.id}] [WS] ${socket.handshake.url} ${JSON.stringify(socket.handshake)}`);
     let { token } = socket?.handshake?.query;
     // if (Authorization && Authorization.startsWith("Bearer ")) {
     //   Authorization = Authorization.slice(7, Authorization.length);
     // }
+
     const { id } = jwt.decodeToken(token);
-    // await User.findByIdAndUpdate(
-    //   id,
-    //   {
-    //     socket_id: socket.id,
-    //   },
-    //   { new: true }
-    // );
+    await User.findByIdAndUpdate(
+      id,
+      {
+        socket_id: socket.id,
+      },
+      { new: true }
+    );
     // Routes
     socket.on('join', async function ({ users }) {
-      // logger.info(`user join room : ${roomId}`);
-      // socket.userId = roomId;
-      // activeUsers.add(roomId);
-
-
       try {
-        let room = await Room.find({ users: { $all: users } })
+        let room = await Room.findOne({ users: { $all: [users, id] } })
         console.log(room, "useruser")
         if (room.length <= 0) {
           room = await Room.create({ users: users })
           console.log(room, "roomroomroomroom")
         }
-        socket.join(room?._id);
-        // let chats = await chatCtrl.getRoom.handler(roomId);
-        // let chatHistory = await chatCtrl.getMessages.handler(roomId);
-        // let history = await chatCtrl.history.handler(roomId);
-        // chats = JSON.parse(JSON.stringify(chats));
-        // chatHistory.payload.chats = chatHistory.payload.chats.map((chat) => {
-        //     chat["network"] = "1"
-        //     return chat;
-        // })
-        // console.log("history", chatHistory.payload.chats)
-        // io.in(socket.id).emit('history', { chats: chatHistory.payload.chats });
         console.log("history sent");
       } catch (error) {
         console.log('Error in finding Chats ', error);
@@ -75,22 +61,15 @@ module.exports = (server, logger) => {
           message: message,
           type: type
         })
-        console.log(newMsg, "newMsgnewMsg")
-        await Room.findByIdAndUpdate({ _id: roomId }, { lastMessage: newMsg._id })
-        // let newMsg = await chatCtrl.sendMessage.handler({
-        //     roomId: roomId,
-        //     sender: sender,
-        //     message: message,
-        //     type: type
-        // });
-        // newMsg = JSON.parse(JSON.stringify(newMsg));
-        // newMsg["network"] = "1"
-        // console.log("new-message", newMsg.payload.newChat)
-        io.in(socket.id).emit('new-message', newMsg);
-        socket.broadcast.emit('new-message', newMsg);         
-        // setTimeout(() => {
+        console.log(newMsg, "newMsgnewMsg", activeUsers)
+        let room = await Room.findByIdAndUpdate({ _id: roomId }, { lastMessage: newMsg._id }, { new: true }).populate({
+          path: 'users',
+          select: '_id socket_id',
+        })
+        room?.users?.map((item) => {
 
-        // }, 1000)
+          io.in(item?.socket_id).emit('new-message', newMsg);
+        })
         console.log("message-sent")
       } catch (error) {
         console.log('Error in sending message', error);

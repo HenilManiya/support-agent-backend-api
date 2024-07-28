@@ -5,7 +5,7 @@ var errLib = require('./error.lib');
 exports.handleError = function(err, res) {
     var statusCode = err.statusCode || 500;
     return res.status(statusCode).json({
-        status: 'ERROR',
+        status: false,
         statusCode: statusCode,
         language: 'en_US',
         data : null,
@@ -15,7 +15,7 @@ exports.handleError = function(err, res) {
 
 exports.handleSuccess = function(data, res) {
     return res.status(200).json({
-        status: 'SUCCESS',
+        status: true,
         statusCode: 200,
         language: 'en_US',
         'data' : data,

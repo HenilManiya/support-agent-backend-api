@@ -8,11 +8,17 @@ module.exports = (app) => {
     const userRoutes = require("./user");
     const roleRoutes = require("./role");
     const roomRoutes = require("./room");
+    const messageRoutes = require("./message");
+    const groupRoutes = require("./group");
+    const expenseRoutes = require("./expense");
 
     // define all routes here
     app.use("/user",  userRoutes);
     app.use("/role",  roleRoutes);
     app.use("/room",  roomRoutes);
+    app.use("/message",  messageRoutes);
+    app.use("/group",  groupRoutes);
+    app.use("/expense",  expenseRoutes);
 
     /* Catch all */
     app.all("*", function (req, res) {
