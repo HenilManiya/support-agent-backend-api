@@ -16,6 +16,7 @@ module.exports = {
     addExpense: async (req, res, next) => {
         const { id } = req.user
         const { title, userId, transactionType, amount, transactionDate, isGroupExpense, groupId, note, members } = req.body;
+        console.log(transactionDate,"transactionDatetransactionDate")
         try {
             console.log("in sdfdsf")
             log.debug("getting the list of roles");
@@ -76,16 +77,29 @@ module.exports = {
         const { id } = req.user
         const { filterType, date } = req.query
         try {
-            console.log(req.query,"req.query")
             log.debug("getting the list of roles");
             let { startDate, endDate } = await formatter.dateTimeFormat(filterType, date)
-            console.log(startDate, endDate ," startDate, endDate ")
             const expense = await Expense.find({
                 userId: id,
-                createdAt: { $gte: startDate, $lte: endDate }
+                transactionDate: { $gte: startDate, $lte: endDate }
             });
-
-            log.debug(`sending the list of ${expense.length} roles`);
+            // log.debug(`sending the list of ${expense.length} roles`);
+            return responseLib.handleSuccess(expense, res);
+        } catch (error) {
+            // If there is an error, log the error and return an error response
+            log.error(error);
+            return responseLib.handleError({ statusCode: 400, error }, res);
+        }
+    },
+    getExpenseByGroup: async (req, res, next) => {
+        const { id } = req.params
+        try {
+            log.debug("getting the list of roles");
+            const expense = await Expense.find({
+                groupId: id,
+            });
+            console.log(expense,"expenseexpense")
+            // log.debug(`sending the list of ${expense.length} roles`);
             return responseLib.handleSuccess(expense, res);
         } catch (error) {
             // If there is an error, log the error and return an error response

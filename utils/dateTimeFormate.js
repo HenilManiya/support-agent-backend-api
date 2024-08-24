@@ -4,15 +4,15 @@ module.exports.formatter = {
         let startDate, endDate;
 
         switch (filterType) {
-            case 'Day':
+            case 'day':
                 startDate = new Date(Date.UTC(parsedDate.getUTCFullYear(), parsedDate.getUTCMonth(), parsedDate.getUTCDate(), 0, 0, 0, 0));
                 endDate = new Date(Date.UTC(parsedDate.getUTCFullYear(), parsedDate.getUTCMonth(), parsedDate.getUTCDate(), 23, 59, 59, 999));
                 break;
-            case 'Month':
+            case 'month':
                 startDate = new Date(Date.UTC(parsedDate.getUTCFullYear(), parsedDate.getUTCMonth(), 1, 0, 0, 0, 0));
                 endDate = new Date(Date.UTC(parsedDate.getUTCFullYear(), parsedDate.getUTCMonth() + 1, 0, 23, 59, 59, 999));
                 break;
-            case 'Year':
+            case 'year':
                 startDate = new Date(Date.UTC(parsedDate.getUTCFullYear(), 0, 1, 0, 0, 0, 0));
                 endDate = new Date(Date.UTC(parsedDate.getUTCFullYear(), 11, 31, 23, 59, 59, 999));
                 break;
