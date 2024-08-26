@@ -182,13 +182,11 @@ console.log(checkUser,"checkUsercheckUsercheckUser")
   },
   updateUser: async (req, res, next) => {
     let id = req.params;
-    console.log(id, "_id_id");
     try {
       // Extract the firebaseId, email, and name from the request body
       const { phoneNumber, fullName, email } = req.body;
-      const profileImage=req.file
-      console.log(profileImage,"profileImageprofileImage")
-      let checkUser = await User.findOne({ phoneNumber: phoneNumber });
+      const profileImage=req?.file
+      let checkUser = await User.findOne({ _id: id });
       if (!checkUser) {
         return responseLib.handleError(
           { statusCode: 404, error: "User not found" },
