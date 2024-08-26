@@ -14,5 +14,6 @@ root/
 sandbox
 service-account*.json
 uploads/
+log/
 .history
 .env

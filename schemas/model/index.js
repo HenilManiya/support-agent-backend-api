@@ -7,4 +7,5 @@ module.exports = {
     Room:require("./Room.model"),
     Group:require("./Group.model"),
     Expense:require("./Expense.model"),
+    GroupExpense:require("./GroupExpense.model"),
 };

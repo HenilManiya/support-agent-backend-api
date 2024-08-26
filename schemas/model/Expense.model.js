@@ -24,31 +24,22 @@ const expenseSchema = new mongoose.Schema(
             type:Date,
             default:new Date()
         },
-        isGroupExpense:{
-            type:Boolean,
-            default:false
-        },
-        groupId:{
+        // isGroupExpense:{
+        //     type:Boolean,
+        //     default:false
+        // },
+        groupExpenseId:{
             type: mongoose.Schema.Types.ObjectId,
-            ref: "group",
-        },
-        groupTotalAmount:{
-            type: Number,
-            default:0
+            ref: "groupExpense",
         },
         note:{
             type: String,
             default:null
         },
-        members:{
-            type: [mongoose.Schema.Types.ObjectId],
-            ref: "user",
-        },
         createdBy:{
             type: mongoose.Schema.Types.ObjectId,
             ref: "user",
         }
-
     },
     {
         timestamps: true,
