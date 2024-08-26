@@ -95,7 +95,7 @@ module.exports = {
                 return responseLib.handleError({ statusCode: 400, message: "GRoup does not exist" }, res);
             }
             const memberList = [...group.members.map((item) => item.toString()), ...members];
-            console.log(memberList, "memberListmemberList")
+
             let body = {
                 ...(name ? { name: name } : {}),
                 members: memberList.filter((item, index, self) => self.indexOf(item) === index)

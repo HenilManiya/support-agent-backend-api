@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const config = require('../config/config');
-const mongoUri = config.db.dbDev;
+const mongoUri = config.db.dbLocal;
 
 const InitiateMongoServer = async (logger) => {
     try {

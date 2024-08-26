@@ -10,6 +10,6 @@ module.exports = {
         dbLive: process.env.MONGOURI_LIVE,
         dbTest: process.env.MONGOURI_TEST,
         dbDev: process.env.MONGOURI_DEV,
-        dbLocal: process.env.MONGOURI_LOCAL ||  "mongodb+srv://henil057:root@test.suyos0z.mongodb.net/expencetracker"
+        dbLocal: process.env.MONGOURI_LOCAL ||  "mongodb+srv://henil057:root@test.suyos0z.mongodb.net/test"
     }
 }
