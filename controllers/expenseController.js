@@ -30,7 +30,7 @@ module.exports = {
     } = req.body;
     console.log(transactionDate, "transactionDatetransactionDate");
     try {
-      console.log("in sdfdsf");
+      console.log("in sdfdsf",isGroupExpense);
       log.debug("getting the list of roles");
       let body = [];
       if (isGroupExpense) {

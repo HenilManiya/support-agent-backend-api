@@ -10,6 +10,6 @@ module.exports = {
         dbLive: process.env.MONGOURI_LIVE,
         dbTest: process.env.MONGOURI_TEST,
         dbDev: process.env.MONGOURI_DEV,
-        dbLocal: process.env.MONGOURI_LOCAL
+        dbLocal: process.env.MONGOURI_DEV
     }
 }
