@@ -31,7 +31,6 @@ module.exports = {
         role: "6697ff6cb743103267c692a2",
       };
       checkUser = await User.create(body);
-console.log(checkUser,"checkUsercheckUsercheckUser")
       // const savedData = await user.save();
       const userTokenData = {
         id: checkUser?._id,
@@ -67,7 +66,6 @@ console.log(checkUser,"checkUsercheckUsercheckUser")
 
   login: async (req, res, next) => {
     try {
-      console.log("henilsssssssssssssssss",req.body);
       // Extract the firebaseId, email, and name from the request body
       const { phoneNumber, password } = req.body;
 
@@ -185,25 +183,24 @@ console.log(checkUser,"checkUsercheckUsercheckUser")
     try {
       // Extract the firebaseId, email, and name from the request body
       const { phoneNumber, fullName, email } = req.body;
-      const profileImage=req?.file
-      let checkUser = await User.findOne({ _id: id });
+      const profileImage = req?.file;
+      let checkUser = await User.findById({ phoneNumber: phoneNumber });
       if (!checkUser) {
         return responseLib.handleError(
           { statusCode: 404, error: "User not found" },
           res
         );
       }
-      log.debug("storing the user data to the db", checkUser);
       let body = {
         fullName: fullName,
         email: email,
-        profileImage:profileImage.filename
+        ...(profileImage ? { profileImage: profileImage?.filename } : {}),
       };
       let user = await User.findByIdAndUpdate(checkUser._id, body, {
         new: true,
       });
 
-      return responseLib.handleSuccess({user}, res);
+      return responseLib.handleSuccess({ user }, res);
     } catch (error) {
       // If there is an exception, log the error and return an error response
       log.error(error);
