@@ -1,4 +1,3 @@
-
 module.exports = {
     User: require("./User.model"),
     Role: require("./Role.model"),
@@ -8,4 +7,5 @@ module.exports = {
     Group:require("./Group.model"),
     Expense:require("./Expense.model"),
     GroupExpense:require("./GroupExpense.model"),
+    PendingReceive:require("./PendingReceive.model"),
 };

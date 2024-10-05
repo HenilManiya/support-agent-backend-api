@@ -12,6 +12,7 @@ module.exports = (app) => {
   const messageRoutes = require("./message");
   const groupRoutes = require("./group");
   const expenseRoutes = require("./expense");
+  const transactionRoutes = require("./pendingReceive");
 
   // define all routes here
   app.use("/user", userRoutes);
@@ -20,6 +21,7 @@ module.exports = (app) => {
   app.use("/message", messageRoutes);
   app.use("/group", groupRoutes);
   app.use("/expense", expenseRoutes);
+  app.use("/transaction", transactionRoutes);
   app.use("/images", express.static(path.join(__dirname, "../public/images")));
   /* Catch all */
   app.all("*", function (req, res) {

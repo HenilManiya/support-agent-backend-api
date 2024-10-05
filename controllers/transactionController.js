@@ -1,11 +1,6 @@
 const express = require("express");
 const { check } = require("express-validator");
-const {
-  Role,
-  Expense,
-  GroupExpense,
-  PendingReceive,
-} = require("../schemas/model");
+const { Role, Expense, GroupExpense, PendingReceive } = require("../schemas/model");
 const { log } = require("../utils/lib/logger.lib");
 const { responseLib } = require("../utils/lib");
 const { formatter } = require("../utils/dateTimeFormate");
@@ -34,7 +29,7 @@ module.exports = {
       members,
     } = req.body;
     try {
-      console.log("in sdfdsf", isGroupExpense);
+      console.log("in sdfdsf",isGroupExpense);
       log.debug("getting the list of roles");
       let body = [];
       if (isGroupExpense) {
@@ -89,22 +84,22 @@ module.exports = {
       //     userId:userId,
       // }
       const expense = await Expense.insertMany(body);
-      console.log(expense, "expenseexpenseexpense");
-      const payload = members
-        ?.filter((data) => data?.isPayble)
-        ?.map((item) => {
-          return {
+      console.log(expense,"expenseexpenseexpense")
+    const payload=  members?.filter((data)=>data?.isPayble)?.map((item)=>{
+        return{
             title: title,
             paybleUserId: item?.id,
+            transactionType: transactionType,
             amount: item?.amount,
             transactionDate: transactionDate,
             // groupId: groupId,
             note: note,
             // members: membersId,
             createdBy: id,
-            expenseId: expense?.find((dta) => dta.userId == item?.id)?._id,
-          };
-        });
+            expenseId:expense?.find((dta)=>dta.userId==item?.id)?._id
+            
+        }
+      })
       const penfingreceive = await PendingReceive.insertMany(payload);
 
       // log.debug(`sending the list of ${roles.length} roles`);
@@ -115,7 +110,7 @@ module.exports = {
       return responseLib.handleError({ statusCode: 400, error }, res);
     }
   },
-  getExpense: async (req, res, next) => {
+  getTransaction: async (req, res, next) => {
     const { id } = req.user;
     const { filterType, date } = req.query;
     try {
@@ -124,10 +119,12 @@ module.exports = {
         filterType,
         date
       );
-      const expense = await Expense.find({
-        userId: id,
-        transactionDate: { $gte: startDate, $lte: endDate },
-      });
+      const expense = await PendingReceive.find({
+        $or:[{paybleUserId: id}
+          ,{createdBy:id}
+        ],
+        // transactionDate: { $gte: startDate, $lte: endDate },
+      }).populate("paybleUserId");
       // log.debug(`sending the list of ${expense.length} roles`);
       return responseLib.handleSuccess(expense, res);
     } catch (error) {
@@ -196,162 +193,14 @@ module.exports = {
       return responseLib.handleError({ statusCode: 400, error }, res);
     }
   },
-  updateRolePermisson: async (req, res, next) => {
+  updateTransaction: async (req, res, next) => {
     try {
       let { id } = req.params;
       log.debug("getting the list of roles");
-      const roles = await Role.findByIdAndUpdate(id, req.body, { new: true });
-
-      log.debug(`sending the list of ${roles.length} roles`);
+      const roles = await PendingReceive.findByIdAndUpdate(id, req.body, { new: true }).populate("paybleUserId"); ;
+console.log(roles,"rolesrolesroles")
+      // log.debug(`sending the list of ${roles.length} roles`);
       return responseLib.handleSuccess(roles, res);
-    } catch (error) {
-      // If there is an error, log the error and return an error response
-      log.error(error);
-      return responseLib.handleError({ statusCode: 400, error }, res);
-    }
-  },
-  getExpenseChartData: async (req, res, next) => {
-    const { id } = req.user;
-    const { month } = req.query;
-    try {
-      log.debug("getting the list of roles");
-      // let { startDate, endDate } = await formatter.dateTimeFormat(
-      //   filterType,
-      //   date
-      // );
-      // function getFirstDateOfMonthsBefore(monthsBefore) {
-      //   // Validate the input (must be a non-negative integer)
-      //   if (monthsBefore < 0) {
-      //     throw new Error("Months before must be a non-negative integer");
-      //   }
-
-      //   // Get the current date
-      //   const currentDate = new Date();
-
-      //   // Calculate the target date by subtracting the specified months
-      //   const targetDate = new Date(
-      //     currentDate.getFullYear(),
-      //     currentDate.getMonth() - monthsBefore,
-      //     1
-      //   );
-
-      //   // Format the date as DD-MM-YYYY
-      //   // const formattedDate = `${String(targetDate.getDate()).padStart(2, '0')}-${String(targetDate.getMonth() + 1).padStart(2, '0')}-${targetDate.getFullYear()}`;
-
-      //   return targetDate;
-      // }
-      function getLastMonthsDateRange(months) {
-        // Validate the input (must be a positive integer)
-        if (months <= 0) {
-          throw new Error("Months must be a positive integer");
-        }
-
-        // Get the current date
-        const currentDate = new Date();
-
-        // Calculate the starting date (first day of the month from months ago)
-        const startDate = new Date(
-          currentDate.getFullYear(),
-          currentDate.getMonth() - months + 1,
-          1
-        );
-
-        // Calculate the ending date (last day of the current month)
-        const endDate = new Date(
-          currentDate.getFullYear(),
-          currentDate.getMonth() + 1,
-          0
-        ); // 0 means last day of the previous month
-
-        // Format the dates as DD/MM/YYYY
-        // const formattedStartDate = `${String(startDate.getDate()).padStart(2, '0')}/${String(startDate.getMonth() + 1).padStart(2, '0')}/${startDate.getFullYear()}`;
-        // const formattedEndDate = `${String(endDate.getDate()).padStart(2, '0')}/${String(endDate.getMonth() + 1).padStart(2, '0')}/${endDate.getFullYear()}`;
-
-        return {
-          startDate: startDate,
-          endDate: endDate,
-        };
-      }
-      console.log(getLastMonthsDateRange(month), " getFormattedDate(month)");
-      let { startDate, endDate } = getLastMonthsDateRange(month);
-      const expense = await Expense.aggregate(
-        [
-          {
-            $match: {
-              userId: ObjectId(id),
-              createdAt: {
-                $gte: startDate,
-                $lt: endDate,
-              },
-            },
-          },
-          {
-            $group: {
-              _id: {
-                year: { $year: "$createdAt" }, // Extract year
-                month: { $month: "$createdAt" }, // Extract month
-              },
-              data: {
-                $push: "$$ROOT", // Push the entire document into the data array
-              },
-            },
-          },
-          {
-            $project: {
-              amount: {
-                $sum: "$data.amount", // Sum the amounts from the data
-              },
-              _id: 1, // Keep the _id (which contains year and month)
-            },
-          },
-          {
-            $sort: {
-              "_id.year": 1, // Sort by year
-              "_id.month": 1, // Sort by month
-            },
-          },
-        ]
-        //   [
-        //   {
-        //     $match: {
-        //       userId: ObjectId(id),
-        //       createdAt: {
-        //         $gte: getFirstDateOfMonthsBefore(month),
-        //         $lt: new Date()
-        //       },
-        //     },
-        //   },
-        //   {
-        //     $group: {
-        //       _id: {
-        //         $dateToString: {
-        //           format: "%Y-%m-%d",
-        //           date: "$createdAt",
-        //         },
-        //       },
-        //       data: {
-        //         $push: "$$ROOT",
-        //       },
-        //     },
-        //   },
-        //   {
-        //     $project: {
-        //       amount: {
-        //         $sum: "$data.amount",
-        //       },
-        //     },
-        //   },
-        //   {
-        //     $sort: {
-        //       _id: 1
-        //     }
-        //   }
-        // ]
-      );
-
-      console.log(expense, "expenseexpense", id);
-      // log.debug(`sending the list of ${expense.length} roles`);
-      return responseLib.handleSuccess(expense, res);
     } catch (error) {
       // If there is an error, log the error and return an error response
       log.error(error);
