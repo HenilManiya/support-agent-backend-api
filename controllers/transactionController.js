@@ -131,7 +131,8 @@ module.exports = {
         // transactionDate: { $gte: startDate, $lte: endDate },
       })
         .sort("-createdAt")
-        .populate("paybleUserId");
+        .populate("paybleUserId")
+        .populate("createdBy")
       console.log(expense, "expenseexpenseexpenseexpense");
       // log.debug(`sending the list of ${expense.length} roles`);
       return responseLib.handleSuccess(expense, res);
