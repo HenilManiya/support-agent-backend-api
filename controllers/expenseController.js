@@ -5,6 +5,7 @@ const {
   Expense,
   GroupExpense,
   PendingReceive,
+  User,
 } = require("../schemas/model");
 const { log } = require("../utils/lib/logger.lib");
 const { responseLib } = require("../utils/lib");
@@ -12,6 +13,7 @@ const { formatter } = require("../utils/dateTimeFormate");
 const {
   Types: { ObjectId: ObjectId },
 } = require("mongoose");
+const socketIo = require("../socket/socket-io");
 
 module.exports = {
   /**
@@ -48,6 +50,7 @@ module.exports = {
           members: membersId,
           createdBy: id,
         };
+
         const groupExpense = await GroupExpense.create(payload);
         body = members.map((item) => {
           return {
@@ -64,6 +67,18 @@ module.exports = {
             // groupTotalAmount: amount,
           };
         });
+        membersId.map(async (item) => {
+          if (item == id) return;
+          const user = await User.findById(item);
+          const notifactionCount = await Expense.find({
+            userId: item,
+            isRead: false,
+          }).count();
+          global.socket.in(user?.socket_id).emit("new-expense", {
+            notifactionCount: notifactionCount.length,
+            type: "expense",
+          });
+        });
       } else {
         body = [
           {
@@ -79,6 +94,7 @@ module.exports = {
           },
         ];
       }
+
       console.log(body, "asdashbdhbaskjdbjkb");
       // body={
       //     title:title,
@@ -106,7 +122,21 @@ module.exports = {
           };
         });
       const penfingreceive = await PendingReceive.insertMany(payload);
-
+      members
+        ?.filter((data) => data?.isPayble)
+        ?.map(async (item) => {
+          const user = await User.findById(item?.id);
+          console.log(user, "useruseruser");
+          const notifactionCount = await PendingReceive.find({
+            paybleUserId: item?.id,
+            isPayed: false,
+          }).count();
+          console.log(notifactionCount,"notifactionCountnotifactionCountnotifactionCount")
+          global.socket.in(user?.socket_id).emit("new-transaction", {
+            notifactionCount: notifactionCount,
+            type: "transaction",
+          });
+        });
       // log.debug(`sending the list of ${roles.length} roles`);
       return responseLib.handleSuccess(expense, res);
     } catch (error) {
@@ -127,7 +157,7 @@ module.exports = {
       const expense = await Expense.find({
         userId: id,
         transactionDate: { $gte: startDate, $lte: endDate },
-      });
+      }).sort("-createdAt");
       // log.debug(`sending the list of ${expense.length} roles`);
       return responseLib.handleSuccess(expense, res);
     } catch (error) {

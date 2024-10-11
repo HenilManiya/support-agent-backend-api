@@ -1,6 +1,12 @@
 const express = require("express");
 const { check } = require("express-validator");
-const { Role, Expense, GroupExpense, PendingReceive } = require("../schemas/model");
+const {
+  Role,
+  Expense,
+  GroupExpense,
+  PendingReceive,
+  User,
+} = require("../schemas/model");
 const { log } = require("../utils/lib/logger.lib");
 const { responseLib } = require("../utils/lib");
 const { formatter } = require("../utils/dateTimeFormate");
@@ -29,7 +35,7 @@ module.exports = {
       members,
     } = req.body;
     try {
-      console.log("in sdfdsf",isGroupExpense);
+      console.log("in sdfdsf", isGroupExpense);
       log.debug("getting the list of roles");
       let body = [];
       if (isGroupExpense) {
@@ -84,9 +90,11 @@ module.exports = {
       //     userId:userId,
       // }
       const expense = await Expense.insertMany(body);
-      console.log(expense,"expenseexpenseexpense")
-    const payload=  members?.filter((data)=>data?.isPayble)?.map((item)=>{
-        return{
+      console.log(expense, "expenseexpenseexpense");
+      const payload = members
+        ?.filter((data) => data?.isPayble)
+        ?.map((item) => {
+          return {
             title: title,
             paybleUserId: item?.id,
             transactionType: transactionType,
@@ -96,10 +104,9 @@ module.exports = {
             note: note,
             // members: membersId,
             createdBy: id,
-            expenseId:expense?.find((dta)=>dta.userId==item?.id)?._id
-            
-        }
-      })
+            expenseId: expense?.find((dta) => dta.userId == item?.id)?._id,
+          };
+        });
       const penfingreceive = await PendingReceive.insertMany(payload);
 
       // log.debug(`sending the list of ${roles.length} roles`);
@@ -120,11 +127,12 @@ module.exports = {
         date
       );
       const expense = await PendingReceive.find({
-        $or:[{paybleUserId: id}
-          ,{createdBy:id}
-        ],
+        $or: [{ paybleUserId: id }, { createdBy: id }],
         // transactionDate: { $gte: startDate, $lte: endDate },
-      }).populate("paybleUserId");
+      })
+        .sort("-createdAt")
+        .populate("paybleUserId");
+      console.log(expense, "expenseexpenseexpenseexpense");
       // log.debug(`sending the list of ${expense.length} roles`);
       return responseLib.handleSuccess(expense, res);
     } catch (error) {
@@ -197,8 +205,24 @@ module.exports = {
     try {
       let { id } = req.params;
       log.debug("getting the list of roles");
-      const roles = await PendingReceive.findByIdAndUpdate(id, req.body, { new: true }).populate("paybleUserId"); ;
-console.log(roles,"rolesrolesroles")
+      const roles = await PendingReceive.findByIdAndUpdate(id, req.body, {
+        new: true,
+      }).populate("paybleUserId");
+
+      const notifactionCount = await PendingReceive.find({
+        paybleUserId: id,
+        isPayed: false,
+      }).count();
+      const user = await User.findById(id);
+      console.log(
+        notifactionCount,
+        "notifactionCountnotifactionCountnotifactionCount"
+      );
+      global.socket.in(user?.socket_id).emit("new-transaction", {
+        notifactionCount: notifactionCount,
+        type: "transaction",
+      });
+      console.log(roles, "rolesrolesroles");
       // log.debug(`sending the list of ${roles.length} roles`);
       return responseLib.handleSuccess(roles, res);
     } catch (error) {

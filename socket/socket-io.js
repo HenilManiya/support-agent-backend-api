@@ -1,14 +1,19 @@
 "use strict";
 const http = require("http");
-const { jwt } = require("../utils/lib")
-const { Message, Room, User } = require("../schemas/model");
+const { jwt } = require("../utils/lib");
+const {
+  Message,
+  Room,
+  User,
+  Expense,
+  PendingReceive,
+} = require("../schemas/model");
 const activeUsers = new Set();
 // const chatCtrl = require("../api/chat");
 
 module.exports = (server, logger) => {
   logger.info("Socket.io server started");
   const io = require("socket.io")(server);
-
 
   io.use((socket, next) => {
     logger.info(
@@ -21,61 +26,99 @@ module.exports = (server, logger) => {
 
   io.on("connection", async (socket) => {
     console.log("User connected", socket.id);
-    logger.info(`CONN [${socket.id}] [WS] ${socket.handshake.url} ${JSON.stringify(socket.handshake)}`);
+    logger.info(
+      `CONN [${socket.id}] [WS] ${socket.handshake.url} ${JSON.stringify(
+        socket.handshake
+      )}`
+    );
     let { token } = socket?.handshake?.query;
     // if (Authorization && Authorization.startsWith("Bearer ")) {
     //   Authorization = Authorization.slice(7, Authorization.length);
     // }
-
+    global.socket = io;
     const { id } = jwt.decodeToken(token);
-    await User.findByIdAndUpdate(
+    const newSocketId = await User.findByIdAndUpdate(
       id,
       {
         socket_id: socket.id,
       },
       { new: true }
     );
+    console.log(newSocketId.socket_id, ":newSocketIdnewSocketId");
+    const notifactionCount = await Expense.find({ userId: id, isRead: false }).count();
+    const notifactionTransactionCount = await PendingReceive.find({
+      paybleUserId: id,
+      isPayed: false,
+    }).count();
+    console.log(
+      notifactionTransactionCount,
+      "notifactionTransactionCountnotifactionTransactionCount"
+    );
+    io.in(newSocketId.socket_id).emit("new-expense", {
+      notifactionCount: notifactionCount,
+      type: "expense",
+    });
+
+    io.in(newSocketId.socket_id).emit("new-transaction", {
+      notifactionCount: notifactionTransactionCount,
+      type: "transaction",
+    });
     // Routes
-    socket.on('join', async function ({ users }) {
-      try {
-        let room = await Room.findOne({ users: { $all: [users, id] } })
-        console.log(room, "useruser")
-        if (room.length <= 0) {
-          room = await Room.create({ users: users })
-          console.log(room, "roomroomroomroom")
-        }
-        console.log("history sent");
-      } catch (error) {
-        console.log('Error in finding Chats ', error);
-      }
+    // socket.on("join", async function ({ users }) {
+    //   try {
+    //     let room = await Room.findOne({ users: { $all: [users, id] } });
+    //     console.log(room, "useruser");
+    //     if (room.length <= 0) {
+    //       room = await Room.create({ users: users });
+    //       console.log(room, "roomroomroomroom");
+    //     }
+    //     console.log("history sent");
+    //   } catch (error) {
+    //     console.log("Error in finding Chats ", error);
+    //   }
+    // });
+
+    // socket.on(
+    //   "new-message",
+    //   async function ({ roomId, sender, message, type }) {
+    //     console.log({ roomId, sender, message });
+    //     try {
+    //       let newMsg = await Message.create({
+    //         roomId: roomId,
+    //         sender: sender,
+    //         // receiver:"other",
+    //         message: message,
+    //         type: type,
+    //       });
+    //       console.log(newMsg, "newMsgnewMsg", activeUsers);
+    //       let room = await Room.findByIdAndUpdate(
+    //         { _id: roomId },
+    //         { lastMessage: newMsg._id },
+    //         { new: true }
+    //       ).populate({
+    //         path: "users",
+    //         select: "_id socket_id",
+    //       });
+    //       room?.users?.map((item) => {
+    //         io.in(item?.socket_id).emit("new-message", newMsg);
+    //       });
+    //       console.log("message-sent");
+    //     } catch (error) {
+    //       console.log("Error in sending message", error);
+    //     }
+    //   }
+    // );
+    socket.on("update-expense-readtype", async function () {
+      await Expense.updateMany({ userId: id, isRead: false }, { isRead: true });
+      const notifactionCount = await Expense.find({
+        userId: id,
+        isRead: false,
+      });
+      io.in(socket.id).emit("new-expense", {
+        notifactionCount: notifactionCount.length,
+        type: "expense",
+      });
     });
-
-    socket.on('new-message', async function ({ roomId, sender, message, type }) {
-      console.log({ roomId, sender, message })
-      try {
-
-        let newMsg = await Message.create({
-          roomId: roomId,
-          sender: sender,
-          // receiver:"other",
-          message: message,
-          type: type
-        })
-        console.log(newMsg, "newMsgnewMsg", activeUsers)
-        let room = await Room.findByIdAndUpdate({ _id: roomId }, { lastMessage: newMsg._id }, { new: true }).populate({
-          path: 'users',
-          select: '_id socket_id',
-        })
-        room?.users?.map((item) => {
-
-          io.in(item?.socket_id).emit('new-message', newMsg);
-        })
-        console.log("message-sent")
-      } catch (error) {
-        console.log('Error in sending message', error);
-      }
-    });
-
     // Socket "Call Connect"
     // socket.on(
     //   "connectCall",
