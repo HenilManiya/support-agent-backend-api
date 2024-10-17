@@ -223,6 +223,10 @@ module.exports = {
         notifactionCount: notifactionCount,
         type: "transaction",
       });
+      global.socket.in(user?.socket_id).emit("new-notification", {
+        message: `You have new transaction, Please check!`,
+        type: "transaction",
+      });
       console.log(roles, "rolesrolesroles");
       // log.debug(`sending the list of ${roles.length} roles`);
       return responseLib.handleSuccess(roles, res);

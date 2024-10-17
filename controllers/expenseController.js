@@ -78,6 +78,10 @@ module.exports = {
             notifactionCount: notifactionCount.length,
             type: "expense",
           });
+          global.socket.in(user?.socket_id).emit("new-notification", {
+            message: `You have new expense, Please check!`,
+            type: "expense",
+          });
         });
       } else {
         body = [
@@ -134,6 +138,10 @@ module.exports = {
           console.log(notifactionCount,"notifactionCountnotifactionCountnotifactionCount")
           global.socket.in(user?.socket_id).emit("new-transaction", {
             notifactionCount: notifactionCount,
+            type: "transaction",
+          });
+          global.socket.in(user?.socket_id).emit("new-notification", {
+            message: `You have new transaction, Please check!`,
             type: "transaction",
           });
         });
