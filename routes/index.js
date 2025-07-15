@@ -1,5 +1,4 @@
 const express = require("express");
-const router = express.Router();
 const enums = require("../json/enums.json");
 const { createResponseObject } = require("../utils/utils");
 const path = require("path");

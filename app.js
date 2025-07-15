@@ -2,7 +2,6 @@ const express = require('express');
 const http = require("http");
 const mongoServer = require('./config/db');
 const cors = require('cors');
-const webSocket = require("./socket/socket-io");
 const initRouter = require("./routes/index");
 
 
@@ -44,8 +43,6 @@ initRouter(app, logger);
 const server = http.createServer(app);
 server.listen(PORT, async () => {
     logger.info('Your app is runing in port ' + PORT);
-    // Init Socket.io
-    await webSocket(server, logger);
 });
 
 
