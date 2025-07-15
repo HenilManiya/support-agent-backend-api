@@ -3,7 +3,7 @@
     document.currentScript || document.querySelector('script[src*="embed.js"]');
   const USER_ID = currentScript?.getAttribute("data-api-key");
 
-  const API_ENDPOINT = `${process.env.SERVER_API}/api/tour-steps`;
+  const API_ENDPOINT = `https://support-agent-backend-api.onrender.com/api/tour-steps`;
 
   const styleContent = `#tourPreviewBtn {
   position: fixed;

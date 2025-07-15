@@ -7,7 +7,7 @@ const DEFAULT_USER_ID = "687521d8a306254ddb9fd34d"; // your default userId
 exports.saveTourSteps = async (req, res) => {
   try {
     const { steps, url, name } = req.body;
-    // const { id } = req.user;
+    const { id } = req.user;
 
     if (!Array.isArray(steps) || !url) {
       return res.status(400).json({ message: "Missing steps or url" });
@@ -22,7 +22,7 @@ exports.saveTourSteps = async (req, res) => {
     const saveTourDetails = await TourDetails.create({
       name: name || url,
       url: url,
-      createdBy: DEFAULT_USER_ID,
+      createdBy: id,
     });
     const savedSteps = await TourStep.insertMany(
       steps.map((step) => ({
@@ -75,7 +75,6 @@ exports.getTourDetails = async (req, res) => {
   try {
     const { id } = req.user;
     const { isTour } = req.query;
-
     if (!id || !Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: "Missing or invalid API key" });
     }
@@ -160,7 +159,9 @@ exports.deleteTour = async (req, res) => {
     // Delete the tour
     await TourDetails.findByIdAndDelete(tourId);
 
-    return res.status(200).json({ message: "Tour and associated steps deleted successfully" });
+    return res
+      .status(200)
+      .json({ message: "Tour and associated steps deleted successfully" });
   } catch (error) {
     console.error("Delete error:", error);
     return res.status(500).json({ message: "Failed to delete tour" });
