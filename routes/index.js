@@ -3,25 +3,17 @@ const router = express.Router();
 const enums = require("../json/enums.json");
 const { createResponseObject } = require("../utils/utils");
 const path = require("path");
+const userRoutes = require("./user");
+const tourRoutes = require("./tour");
+const embedScriptRoute = require('./embed');
 
 module.exports = (app) => {
   // define all route imports here
-  const userRoutes = require("./user");
-  const roleRoutes = require("./role");
-  const roomRoutes = require("./room");
-  const messageRoutes = require("./message");
-  const groupRoutes = require("./group");
-  const expenseRoutes = require("./expense");
-  const transactionRoutes = require("./pendingReceive");
 
   // define all routes here
   app.use("/user", userRoutes);
-  app.use("/role", roleRoutes);
-  app.use("/room", roomRoutes);
-  app.use("/message", messageRoutes);
-  app.use("/group", groupRoutes);
-  app.use("/expense", expenseRoutes);
-  app.use("/transaction", transactionRoutes);
+  app.use('/api', tourRoutes);
+  app.use('/embed', embedScriptRoute);
   app.use("/images", express.static(path.join(__dirname, "../public/images")));
   /* Catch all */
   app.all("*", function (req, res) {

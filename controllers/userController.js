@@ -1,7 +1,5 @@
 const crypto = require("crypto");
 const config = require("../config/config");
-const jwtSecrets = config.jwt.jwtSecrets;
-const jwtExpiresIn = config.jwt.jwtExpiresIn;
 
 const { validationResult } = require("express-validator");
 const { User } = require("../schemas/model");
@@ -11,32 +9,27 @@ const { responseLib, jwt } = require("../utils/lib");
 //schema
 module.exports = {
   signup: async (req, res) => {
-    const { fullName, email, phoneNumber, gender, dob, password } = req.body;
+    const { name, email, password } = req.body;
     try {
-      let query = { $or: [{ email }, { phoneNumber }] };
+      let query = { email: email };
 
       let checkUser = await User.findOne(query);
 
       if (checkUser) {
         return res.status(400).send({
-          msg: "email or mobile already exists",
+          msg: "Email already exists",
         });
       }
       let body = {
-        fullName: fullName,
+        name: name,
         email: email,
-        phoneNumber: phoneNumber,
-        gender: gender,
         password: password,
-        role: "6697ff6cb743103267c692a2",
       };
       checkUser = await User.create(body);
       // const savedData = await user.save();
       const userTokenData = {
         id: checkUser?._id,
         email: checkUser?.email,
-        role: checkUser?.role?.name,
-        roleId: checkUser?.role?._id,
       };
       const token = jwt.encodeToken(userTokenData);
       delete checkUser._doc.password;
@@ -67,14 +60,11 @@ module.exports = {
   login: async (req, res, next) => {
     try {
       // Extract the firebaseId, email, and name from the request body
-      const { phoneNumber, password } = req.body;
+      const { email, password } = req.body;
 
       let checkUser = await User.findOne({
-        phoneNumber: phoneNumber,
+        email: email,
         password: password,
-      }).populate({
-        path: "role",
-        model: "role",
       });
       console.log(checkUser, "checkUsercheckUsercheckUser");
       if (!checkUser) {
@@ -97,8 +87,6 @@ module.exports = {
       const userTokenData = {
         id: checkUser?._id,
         email: checkUser?.email,
-        role: checkUser?.role?.name,
-        roleId: checkUser?.role?._id,
       };
       const token = jwt.encodeToken(userTokenData);
       delete checkUser._doc.password;
@@ -182,7 +170,7 @@ module.exports = {
     let id = req.params;
     try {
       // Extract the firebaseId, email, and name from the request body
-      const { phoneNumber, fullName, email } = req.body;
+      const { phoneNumber, name, email } = req.body;
       const profileImage = req?.file;
       let checkUser = await User.findById({ phoneNumber: phoneNumber });
       if (!checkUser) {
@@ -192,7 +180,7 @@ module.exports = {
         );
       }
       let body = {
-        fullName: fullName,
+        name: name,
         email: email,
         ...(profileImage ? { profileImage: profileImage?.filename } : {}),
       };
@@ -214,9 +202,9 @@ module.exports = {
       let user = await User.find({
         $or: [
           { phoneNumber: { $regex: new RegExp(search, "i") } },
-          { fullName: { $regex: new RegExp(search, "i") } },
+          { name: { $regex: new RegExp(search, "i") } },
         ],
-      }).select("_id fullName profileImage phoneNumber");
+      }).select("_id name profileImage phoneNumber");
 
       if (!user) {
         return responseLib.handleError(

@@ -32,7 +32,6 @@ router.put(
   "/update-profile/:id",
   uploadFile.single("profileImage"),
   userController.updateUser
-// ()=>console.log("dsfkjsdbfkb")
 );
 router.get("/getuser", middleware.auth, userController.getUser);
 

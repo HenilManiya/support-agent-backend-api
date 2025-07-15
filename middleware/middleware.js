@@ -5,7 +5,7 @@ const { responseLib, jwt, log } = require("../utils/lib");
 
 module.exports.middleware = {
   auth: async function (req, res, next) {
-    let token = req.header("Authorization");
+    let token = req.header("x-auth-token");
     console.log(token,"tokentokentoken")
     const errorObj = {
       message: "token missing in header Authorization",
@@ -15,12 +15,7 @@ module.exports.middleware = {
       message: "Password Changed",
       statusCode: 401,
     };
-    // Check for token type Bearer
-    if (token && token.startsWith("Bearer ")) {
-      token = token.slice(7, token.length);
-    } else {
-      return responseLib.handleError(errorObj, res);
-    }
+
     if (!token) return responseLib.handleError(errorObj, res);
     try {
       console.log(token,"zcdzbhjzbbb")
