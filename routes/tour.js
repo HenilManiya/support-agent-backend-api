@@ -7,6 +7,7 @@ const { middleware } = require('../middleware/middleware');
 router.post('/save-tour',middleware.auth,  TourController.saveTourSteps);
 router.get('/tour-steps', TourController.getTourStepsByUrl);
 router.get('/tour-details',middleware.auth, TourController.getTourDetails);
+router.get('/tour-details-script', TourController.getTourDetailsScript);
 router.put("/tour-steps/:stepId", TourController.updateTourStep);
 router.delete("/tours/:tourId", TourController.deleteTour);
 module.exports = router;

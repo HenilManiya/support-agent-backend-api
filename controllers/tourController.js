@@ -12,13 +12,6 @@ exports.saveTourSteps = async (req, res) => {
     if (!Array.isArray(steps) || !url) {
       return res.status(400).json({ message: "Missing steps or url" });
     }
-    const findTour = await TourDetails.findOne({
-      url: { $regex: url, $options: "i" },
-    });
-    console.log(findTour, "findTourfindTour");
-    if (findTour) {
-      return res.status(400).json({ message: "Tour already exist" });
-    }
     const saveTourDetails = await TourDetails.create({
       name: name || url,
       url: url,
@@ -74,15 +67,15 @@ exports.getTourStepsByUrl = async (req, res) => {
 exports.getTourDetails = async (req, res) => {
   try {
     const { id } = req.user;
-    const { isTour } = req.query;
+    const { isTour, createdBy, url } = req.query;
     if (!id || !Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: "Missing or invalid API key" });
     }
-
     const pipeline = [
       {
         $match: {
-          createdBy: new Types.ObjectId(id),
+          createdBy: new Types.ObjectId(createdBy),
+          ...(url ? { url: { $regex: url, $options: "i" } } : {}),
         },
       },
     ];
@@ -98,6 +91,38 @@ exports.getTourDetails = async (req, res) => {
       });
     }
 
+    const tourDetails = await TourDetails.aggregate(pipeline);
+
+    res.status(200).json({ data: tourDetails });
+  } catch (err) {
+    console.error("Aggregation error:", err);
+    res.status(500).json({ message: "Failed to fetch tour details" });
+  }
+};
+exports.getTourDetailsScript = async (req, res) => {
+  try {
+    const { isTour, createdBy, url } = req.query;
+    console.log(createdBy, url, "createdBy, url");
+    if (!createdBy || !Types.ObjectId.isValid(createdBy)) {
+      return res.status(400).json({ message: "Missing or invalid API key" });
+    }
+
+    const pipeline = [
+      {
+        $match: {
+          createdBy: new Types.ObjectId(createdBy),
+          ...(url ? { url: url } : {}),
+        },
+      },
+      {
+        $lookup: {
+          from: "tourStep", // MongoDB collection name (Mongoose auto-pluralizes model names)
+          localField: "_id",
+          foreignField: "tourId",
+          as: "steps",
+        },
+      },
+    ];
     const tourDetails = await TourDetails.aggregate(pipeline);
 
     res.status(200).json({ data: tourDetails });

@@ -3,7 +3,7 @@
     document.currentScript || document.querySelector('script[src*="embed.js"]');
   const USER_ID = currentScript?.getAttribute("data-api-key");
 
-  const API_ENDPOINT = `https://support-agent-backend-api.onrender.com/api/tour-steps`;
+    const API_ENDPOINT = `https://support-agent-backend-api.onrender.com`;
 
   const styleContent = `#tourPreviewBtn {
   position: fixed;
@@ -11,17 +11,19 @@
   right: 20px;
   background: #667eea;
   color: white;
-  padding: 12px 20px;
-  border-radius: 8px;
+  padding: 12px 12px;
+  border-radius: 50%;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   cursor: pointer;
   z-index: 1000000;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-#tourPreviewBtn:hover {
-  background: #5a6fd8;
-}
-
+#tourPreviewBtn:hover { background: #5a6fd8; }
 .tour-popup {
   position: absolute;
   z-index: 1000002;
@@ -35,18 +37,16 @@
   pointer-events: auto;
 }
 .tour-popup button {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255,255,255,0.2);
   color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255,255,255,0.3);
   padding: 8px 16px;
   margin: 5px 5px 0 0;
   border-radius: 6px;
   cursor: pointer;
   font-size: 12px;
 }
-.tour-popup button:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
+.tour-popup button:hover { background: rgba(255,255,255,0.3); }
 .tour-popup button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -56,47 +56,66 @@
   border: 2px solid #ff6b6b !important;
   border-radius: 6px !important;
   padding: 6px !important;
-  background: rgba(255, 107, 107, 0.1) !important;
-  box-shadow: 0 0 20px rgba(255, 107, 107, 0.3) !important;
+  background: rgba(255,107,107,0.1) !important;
+  box-shadow: 0 0 20px rgba(255,107,107,0.3) !important;
   z-index: 1000001 !important;
 }
 
 .tour-popup .popup-arrow {
-  position: absolute;
-  width: 0;
-  height: 0;
+  position: absolute; width: 0; height: 0;
 }
-
 .tour-popup.arrow-top .popup-arrow {
-  bottom: -10px;
-  left: calc(50% - 10px);
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-top: 10px solid #667eea;
+  bottom: -10px; left: calc(50% - 10px);
+  border-left:10px solid transparent;
+  border-right:10px solid transparent;
+  border-top:10px solid #667eea;
 }
 .tour-popup.arrow-bottom .popup-arrow {
-  top: -10px;
-  left: calc(50% - 10px);
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-bottom: 10px solid #667eea;
+  top: -10px; left: calc(50% - 10px);
+  border-left:10px solid transparent;
+  border-right:10px solid transparent;
+  border-bottom:10px solid #667eea;
 }
 .tour-popup.arrow-left .popup-arrow {
-  right: -10px;
-  top: calc(50% - 10px);
-  border-top: 10px solid transparent;
-  border-bottom: 10px solid transparent;
-  border-left: 10px solid #667eea;
+  right: -10px; top: calc(50% - 10px);
+  border-top:10px solid transparent;
+  border-bottom:10px solid transparent;
+  border-left:10px solid #667eea;
 }
 .tour-popup.arrow-right .popup-arrow {
-  left: -10px;
-  top: calc(50% - 10px);
-  border-top: 10px solid transparent;
-  border-bottom: 10px solid transparent;
-  border-right: 10px solid #667eea;
+  left: -10px; top: calc(50% - 10px);
+  border-top:10px solid transparent;
+  border-bottom:10px solid transparent;
+  border-right:10px solid #667eea;
 }
-`;
+.tour-popup-selector {
+  position: fixed;
+  bottom: 75px;
+  right: 20px;
+  z-index: 1000002;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 10px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  max-width: 300px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 10px
+}
 
+.tour-popup-selector button {
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.3);
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.tour-popup-selector button:hover { background: rgba(255,255,255,0.3); }
+`;
   const normalizeHTML = (html) =>
     html
       .replace(/\\s+/g, " ")
@@ -114,7 +133,7 @@
       return url;
     }
   };
-
+  let allTours = [];
   let tourSteps = [];
   let currentStepIndex = 0;
   let highlightedElement = null;
@@ -127,18 +146,30 @@
     }
   }
 
-  async function fetchTour() {
+  async function fetchAllTours() {
     try {
       const res = await fetch(
-        `${API_ENDPOINT}?url=${encodeURIComponent(
-          window.location.origin
-        )}&tourId=${USER_ID}`
+        `${API_ENDPOINT}/api/tour-details-script?url=${encodeURIComponent(
+          window.location.hostname
+        )}&createdBy=${USER_ID}`
       );
-      if (!res.ok) throw new Error("Failed to fetch tour data");
+      const data = await res.json();
+      return data.data || [];
+    } catch (err) {
+      alert("Failed to fetch tours: " + err.message);
+      return [];
+    }
+  }
+
+  async function fetchStepsForTour(tourId) {
+    try {
+      const res = await fetch(
+        `${API_ENDPOINT}/api/tour-steps?tourId=${tourId}`
+      );
       const data = await res.json();
       return data.steps || [];
     } catch (err) {
-      alert("Error loading tour data: " + err.message);
+      alert("Error loading tour steps: " + err.message);
       return [];
     }
   }
@@ -248,60 +279,60 @@
       if (currentStepIndex < tourSteps.length - 1)
         showTourStep(currentStepIndex + 1);
     });
-    popup.querySelector("#closeTourBtn").addEventListener("click", () => {
-      removePopup();
-    });
+    popup.querySelector("#closeTourBtn").addEventListener("click", removePopup);
   }
+  function showTourSelector(tours) {
+    const popup = document.createElement("div");
+    popup.className = "tour-popup-selector";
+    // popup.innerHTML = `<div style="margin-bottom:10px">Select a tour:</div>`;
 
-  // Resume tour after redirect only AFTER DOM loaded & small delay
-  window.addEventListener("DOMContentLoaded", () => {
-    const savedSteps = sessionStorage.getItem("tourSteps");
-    const savedIndex = sessionStorage.getItem("tourStepIndex");
-    if (savedSteps && savedIndex !== null) {
-      try {
-        const parsed = JSON.parse(savedSteps);
-        const index = parseInt(savedIndex);
-        const step = parsed[index];
-
-        if (normalizeURL(step.url) === normalizeURL(window.location.href)) {
-          tourSteps = parsed;
-          currentStepIndex = index;
-
-          setTimeout(() => {
-            showTourStep(currentStepIndex);
-            sessionStorage.removeItem("tourSteps");
-            sessionStorage.removeItem("tourStepIndex");
-          }, 300);
+    tours.forEach((tour, i) => {
+      const btn = document.createElement("button");
+      btn.textContent =
+        `${tour.name} ${tour?.steps?.length}` || `Tour ${i + 1}`;
+      btn.addEventListener("click", async () => {
+        const steps = await fetchStepsForTour(tour?._id);
+        if (steps?.length > 0) {
+          document.body.removeChild(popup);
+          tourSteps = steps || [];
+          showTourStep(0);
+        } else {
+          alert("No steps found for selected tour.");
+          return;
         }
-      } catch (e) {
-        console.warn("Error resuming tour:", e);
-      }
-    }
-  });
-
-  // Create preview button and attach click event
-  document.addEventListener("DOMContentLoaded", () => {
+      });
+      popup.appendChild(btn);
+    });
+    document.body.appendChild(popup);
+    return popup; // ✅ Return the popup so it can be removed later
+  }
+  // Inject Start button
+  document.addEventListener("DOMContentLoaded", async () => {
     const styleEl = document.createElement("style");
     styleEl.textContent = styleContent;
     document.head.appendChild(styleEl);
-    const previewBtn = document.createElement("button");
-    previewBtn.id = "tourPreviewBtn";
-    previewBtn.textContent = "Start";
-    document.body.appendChild(previewBtn);
+    const btn = document.createElement("button");
+    btn.id = "tourPreviewBtn";
+    btn.innerHTML = `
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4 4H20V16H5.17L4 17.17V4Z" stroke="white" stroke-width="2"/>
+    </svg>
+  `;
+    document.body.appendChild(btn);
+    let popup = null;
+    allTours = await fetchAllTours();
 
-    previewBtn.addEventListener("click", async () => {
-      if (tourSteps.length === 0) {
-        previewBtn.textContent = "Loading...";
-        tourSteps = await fetchTour();
-        console.log(tourSteps, "tourStepstourSteps");
-        if (tourSteps.length === 0) {
-          alert("No saved tours found for this user.");
-          previewBtn.textContent = "Start";
+    btn.addEventListener("click", () => {
+      if (popup) {
+        popup.remove();
+        popup = null;
+      } else {
+        if (!allTours.length) {
+          alert("No tours found.");
           return;
         }
-        previewBtn.textContent = "Start";
+        popup = showTourSelector(allTours); // now this assigns the actual popup element
       }
-      showTourStep(0);
     });
   });
 })();
