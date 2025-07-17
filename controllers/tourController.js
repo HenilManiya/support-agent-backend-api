@@ -67,15 +67,14 @@ exports.getTourStepsByUrl = async (req, res) => {
 exports.getTourDetails = async (req, res) => {
   try {
     const { id } = req.user;
-    const { isTour, createdBy, url } = req.query;
+    const { isTour } = req.query;
     if (!id || !Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: "Missing or invalid API key" });
     }
     const pipeline = [
       {
         $match: {
-          createdBy: new Types.ObjectId(createdBy),
-          ...(url ? { url: { $regex: url, $options: "i" } } : {}),
+          createdBy: new Types.ObjectId(id),
         },
       },
     ];
