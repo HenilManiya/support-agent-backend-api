@@ -92,7 +92,7 @@
   position: fixed;
   bottom: 75px;
   right: 20px;
-  z-index: 1000002;
+  z-index: 1000001;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   padding: 10px;
